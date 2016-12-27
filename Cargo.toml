@@ -1,0 +1,6 @@
+[package]
+name = "home-interface"
+version = "0.1.0"
+authors = ["Simon Strassl <stuff@sigmoid.at>"]
+
+[dependencies]
