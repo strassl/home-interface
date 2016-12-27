@@ -2,5 +2,14 @@
 name = "home-interface"
 version = "0.1.0"
 authors = ["Simon Strassl <stuff@sigmoid.at>"]
+build = "build.rs"
 
 [dependencies]
+rustless = "0.10.0"
+hyper = "0.9.14"
+iron = "0.4.0"
+valico = "1"
+palette = "0.2"
+serde = "0.8"
+serde_codegen = "0.8"
+serde_json = "0.8"
