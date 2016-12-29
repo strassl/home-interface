@@ -8,6 +8,7 @@ build = "build.rs"
 serde_codegen = "0.8"
 
 [dependencies]
+log = "0.3.6"
 rustless = "0.10.0"
 hyper = "0.9.14"
 iron = "0.4.0"
