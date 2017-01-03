@@ -49,7 +49,7 @@ fn handle_get_system_info(request: &mut Request) -> IronResult<Response> {
 }
 
 fn get_system_info(_: &mut Request) -> Result<Response, InterfaceError> {
-    let os = format!("{} {}", get_os_type()?, get_os_release()?);
+    let os = get_os_info()?;
     let loadavg = get_loadavg()?;
     let mem_usage = get_mem_usage()?;
     let uptime = get_uptime()?;
