@@ -1,5 +1,6 @@
+#![allow(dead_code)]
 #[macro_use]
 extern crate log;
 
-mod hardware;
+mod lights;
 mod interface;

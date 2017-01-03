@@ -7,20 +7,19 @@ mod interface_error;
 
 include!(concat!(env!("OUT_DIR"), "/schema.rs"));
 
-use std::sync::{Arc, Mutex, MutexGuard};
+use std::sync::{Arc, Mutex};
 use std::io::Read;
-use hardware;
-use hardware::Controller;
+use lights;
+use lights::Controller;
 use self::interface_error::InterfaceError;
 use self::iron::prelude::*;
 use self::iron::status;
 use self::router::Router;
-use self::hyper::status::StatusCode;
 
 impl From<InterfaceError> for iron::IronError {
     fn from(err: InterfaceError) -> iron::IronError {
         match err {
-            InterfaceError::HardwareError(_) => iron::IronError::new(err, (status::InternalServerError)),
+            InterfaceError::LightsError(_) => iron::IronError::new(err, (status::InternalServerError)),
             InterfaceError::DeserializationError(_) => iron::IronError::new(err, (status::BadRequest)),
             InterfaceError::IoError(_) => iron::IronError::new(err, (status::RequestTimeout)),
             InterfaceError::OtherError(_) => iron::IronError::new(err, (status::InternalServerError)),
@@ -33,42 +32,42 @@ pub fn create_application(controller: Arc<Mutex<Box<Controller + Send + Sync>>>)
 
     {
         let controller = controller.clone();
-        router.get("/api/status", move |r: &mut Request| handle_get_status(r, &controller), "status");
+        router.get("/api/light/status", move |r: &mut Request| handle_get_light_status(r, &controller), "light status");
     }
     {
         let controller = controller.clone();
-        router.put("/api/status", move |r: &mut Request| handle_put_status(r, &controller), "status");
+        router.put("/api/light/status", move |r: &mut Request| handle_put_light_status(r, &controller), "light status");
     }
 
     router
 }
 
-fn handle_get_status(request: &mut Request, controller: &Mutex<Box<Controller + Send + Sync>>) -> IronResult<Response> {
+fn handle_get_light_status(request: &mut Request, controller: &Mutex<Box<Controller + Send + Sync>>) -> IronResult<Response> {
     let mut guard = controller.lock().unwrap();
     let mut controller = &mut *guard;
 
-    Ok(get_status(request, controller)?)
+    Ok(get_light_status(request, controller)?)
 }
 
-fn get_status(request: &mut Request, controller: &mut Box<Controller + Send + Sync>) -> Result<Response, InterfaceError> {
+fn get_light_status(_: &mut Request, controller: &mut Box<Controller + Send + Sync>) -> Result<Response, InterfaceError> {
     let hw_state = controller.get()?;
     let resp_json = serde_json::to_string(&to_interface(&hw_state))?;
 
     Ok(Response::with((status::Ok, resp_json)))
 }
 
-fn handle_put_status(request: &mut Request, controller: &Mutex<Box<Controller + Send + Sync>>) -> IronResult<Response> {
+fn handle_put_light_status(request: &mut Request, controller: &Mutex<Box<Controller + Send + Sync>>) -> IronResult<Response> {
     let mut guard = controller.lock().unwrap();
     let mut controller = &mut *guard;
 
-    Ok(put_status(request, controller)?)
+    Ok(put_light_status(request, controller)?)
 }
 
-fn put_status(request: &mut Request, controller: &mut Box<Controller + Send + Sync>) -> Result<Response, InterfaceError> {
+fn put_light_status(request: &mut Request, controller: &mut Box<Controller + Send + Sync>) -> Result<Response, InterfaceError> {
     let mut payload = String::new();
     request.body.read_to_string(&mut payload)?;
 
-    let requested_status: Status = serde_json::from_str(&payload)?;
+    let requested_status: LightStatus = serde_json::from_str(&payload)?;
     let new_hw_state = to_hardware(&requested_status);
     controller.set(&new_hw_state)?;
 
@@ -78,8 +77,8 @@ fn put_status(request: &mut Request, controller: &mut Box<Controller + Send + Sy
     Ok(Response::with((status::Ok, resp_json)))
 }
 
-fn to_hardware(status: &Status) -> hardware::State {
-    return hardware::State {
+fn to_hardware(status: &LightStatus) -> lights::State {
+    return lights::State {
         r: status.r,
         g: status.g,
         b: status.b,
@@ -89,8 +88,8 @@ fn to_hardware(status: &Status) -> hardware::State {
     }
 }
 
-fn to_interface(hw_state: &hardware::State) -> Status {
-    return Status {
+fn to_interface(hw_state: &lights::State) -> LightStatus {
+    return LightStatus {
         r: hw_state.r,
         g: hw_state.g,
         b: hw_state.b,
@@ -99,26 +98,26 @@ fn to_interface(hw_state: &hardware::State) -> Status {
     }
 }
 
-fn mode_to_hardware(mode: &Mode) -> hardware::Mode {
+fn mode_to_hardware(mode: &LightMode) -> lights::Mode {
     match mode {
-        &Mode::Static => hardware::Mode::Static,
-        &Mode::Blink => hardware::Mode::Blink,
-        &Mode::Fade => hardware::Mode::Fade,
-        &Mode::Jump3 => hardware::Mode::Jump3,
-        &Mode::Jump7 => hardware::Mode::Jump7,
-        &Mode::Knock => hardware::Mode::Knock,
-        &Mode::Tripwire => hardware::Mode::Tripwire,
+        &LightMode::Static => lights::Mode::Static,
+        &LightMode::Blink => lights::Mode::Blink,
+        &LightMode::Fade => lights::Mode::Fade,
+        &LightMode::Jump3 => lights::Mode::Jump3,
+        &LightMode::Jump7 => lights::Mode::Jump7,
+        &LightMode::Knock => lights::Mode::Knock,
+        &LightMode::Tripwire => lights::Mode::Tripwire,
     }
 }
 
-fn mode_to_interface(mode: &hardware::Mode) -> Mode {
+fn mode_to_interface(mode: &lights::Mode) -> LightMode {
     match mode {
-        &hardware::Mode::Static => Mode::Static,
-        &hardware::Mode::Blink => Mode::Blink,
-        &hardware::Mode::Fade => Mode::Fade,
-        &hardware::Mode::Jump3 => Mode::Jump3,
-        &hardware::Mode::Jump7 => Mode::Jump7,
-        &hardware::Mode::Knock => Mode::Knock,
-        &hardware::Mode::Tripwire => Mode::Tripwire,
+        &lights::Mode::Static => LightMode::Static,
+        &lights::Mode::Blink => LightMode::Blink,
+        &lights::Mode::Fade => LightMode::Fade,
+        &lights::Mode::Jump3 => LightMode::Jump3,
+        &lights::Mode::Jump7 => LightMode::Jump7,
+        &lights::Mode::Knock => LightMode::Knock,
+        &lights::Mode::Tripwire => LightMode::Tripwire,
     }
 }

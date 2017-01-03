@@ -1,5 +1,5 @@
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-enum Mode {
+enum LightMode {
     Static,
     Blink,
     Fade,
@@ -10,11 +10,11 @@ enum Mode {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
-struct Status {
+struct LightStatus {
     r: u8,
     g: u8,
     b: u8,
 
-    mode: Mode,
+    mode: LightMode,
     speed: u8,
 }

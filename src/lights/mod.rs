@@ -1,22 +1,22 @@
 extern crate serial;
 
 mod protocol;
-mod hardware_error;
+mod lights_error;
 
 use std::io;
 use std::io::Write;
 use std::io::Read;
 use std::time::Duration;
 use self::serial::SerialPort;
-pub use self::hardware_error::HardwareError;
+pub use self::lights_error::LightsError;
 pub use self::protocol::{
     State, Mode, ProtocolError
 };
 use self::protocol::{Command, command_to_message, message_to_state};
 
 pub trait Controller {
-    fn set(&mut self, config: &State) -> Result<(), HardwareError>;
-    fn get(&mut self) -> Result<State, HardwareError>;
+    fn set(&mut self, config: &State) -> Result<(), LightsError>;
+    fn get(&mut self) -> Result<State, LightsError>;
 }
 
 struct RealController {
@@ -24,7 +24,7 @@ struct RealController {
 }
 
 impl Controller for RealController {
-    fn set(&mut self, config: &State) -> Result<(), HardwareError> {
+    fn set(&mut self, config: &State) -> Result<(), LightsError> {
         let cmd_rgb = Command::SetRGB { r: config.r, g: config.g, b: config.b };
         write_command(&mut self.port, &cmd_rgb)?;
         let cmd_mode = Command::SetMode { mode: config.mode };
@@ -34,7 +34,7 @@ impl Controller for RealController {
         Ok(())
     }
 
-    fn get(&mut self) -> Result<State, HardwareError> {
+    fn get(&mut self) -> Result<State, LightsError> {
         let command = Command::GetState;
         let resp = write_command(&mut self.port, &command)?;
 
@@ -42,7 +42,7 @@ impl Controller for RealController {
     }
 }
 
-fn write_command(port: &mut serial::SystemPort, command: &Command) -> Result<[u8; protocol::MSG_SIZE], HardwareError> {
+fn write_command(port: &mut serial::SystemPort, command: &Command) -> Result<[u8; protocol::MSG_SIZE], LightsError> {
     let req = command_to_message(command);
     info!("Writing {:?}", req);
     port.write(&req)?;

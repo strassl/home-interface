@@ -1,9 +1,10 @@
+#![allow(dead_code)]
 #[macro_use]
 extern crate log;
 extern crate iron;
 
 mod interface;
-mod hardware;
+mod lights;
 mod util;
 
 use std::sync::{Arc, Mutex};
@@ -17,7 +18,7 @@ fn main() {
 
     info!("Starting");
 
-    let controller = hardware::init("/dev/ttyACM0").unwrap();
+    let controller = lights::init("/dev/ttyACM0").unwrap();
     /*
     let mut config = State {
         r: 255,

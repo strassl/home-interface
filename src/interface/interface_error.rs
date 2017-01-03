@@ -2,12 +2,12 @@ use std::fmt;
 use std::error::Error;
 use std::io;
 
-use hardware::HardwareError;
+use lights::LightsError;
 use interface::serde_json;
 
 #[derive(Debug)]
 pub enum InterfaceError {
-    HardwareError(HardwareError),
+    LightsError(LightsError),
     DeserializationError(serde_json::Error),
     IoError(io::Error),
     OtherError(Box<Error + 'static + Send>),
@@ -16,7 +16,7 @@ pub enum InterfaceError {
 impl fmt::Display for InterfaceError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            InterfaceError::HardwareError(ref err) => fmt::Display::fmt(err, f),
+            InterfaceError::LightsError(ref err) => fmt::Display::fmt(err, f),
             InterfaceError::DeserializationError(ref err) => fmt::Display::fmt(err, f),
             InterfaceError::IoError(ref err) => fmt::Display::fmt(err, f),
             InterfaceError::OtherError(ref err) => fmt::Display::fmt(&(*err), f),
@@ -27,7 +27,7 @@ impl fmt::Display for InterfaceError {
 impl Error for InterfaceError {
     fn description(&self) -> &str {
         match *self {
-            InterfaceError::HardwareError(ref err) => err.description(),
+            InterfaceError::LightsError(ref err) => err.description(),
             InterfaceError::DeserializationError(ref err) => err.description(),
             InterfaceError::IoError(ref err) => err.description(),
             InterfaceError::OtherError(ref err) => (*err).description(),
@@ -36,7 +36,7 @@ impl Error for InterfaceError {
 
     fn cause(&self) -> Option<&Error> {
         Some(match *self {
-            InterfaceError::HardwareError(ref err) => err as &Error,
+            InterfaceError::LightsError(ref err) => err as &Error,
             InterfaceError::DeserializationError(ref err) => err as &Error,
             InterfaceError::IoError(ref err) => err as &Error,
             InterfaceError::OtherError(ref err) => &(**err) as &Error,
@@ -50,9 +50,9 @@ impl From<io::Error> for InterfaceError {
     }
 }
 
-impl From<HardwareError> for InterfaceError {
-    fn from(err: HardwareError) -> InterfaceError {
-        InterfaceError::HardwareError(err)
+impl From<LightsError> for InterfaceError {
+    fn from(err: LightsError) -> InterfaceError {
+        InterfaceError::LightsError(err)
     }
 }
 
