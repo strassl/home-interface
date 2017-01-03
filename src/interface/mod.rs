@@ -11,6 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::io::Read;
 use lights;
 use lights::Controller;
+use system_information::*;
 use self::interface_error::InterfaceError;
 use self::iron::prelude::*;
 use self::iron::status;
@@ -38,8 +39,30 @@ pub fn create_application(controller: Arc<Mutex<Box<Controller + Send + Sync>>>)
         let controller = controller.clone();
         router.put("/api/light/status", move |r: &mut Request| handle_put_light_status(r, &controller), "light status");
     }
+    router.get("/api/system/info", |r: &mut Request| handle_get_system_info(r), "system info");
 
     router
+}
+
+fn handle_get_system_info(request: &mut Request) -> IronResult<Response> {
+    Ok(get_system_info(request)?)
+}
+
+fn get_system_info(_: &mut Request) -> Result<Response, InterfaceError> {
+    let os = format!("{} {}", get_os_type()?, get_os_release()?);
+    let loadavg = get_loadavg()?;
+    let mem_usage = get_mem_usage()?;
+    let uptime = get_uptime()?;
+
+    let info = SystemInfo {
+        os: os,
+        loadavg: loadavg,
+        mem_usage: mem_usage,
+        uptime: uptime.as_secs()
+    };
+
+    let resp_json = serde_json::to_string(&info)?;
+    Ok(Response::with((status::Ok, resp_json)))
 }
 
 fn handle_get_light_status(request: &mut Request, controller: &Mutex<Box<Controller + Send + Sync>>) -> IronResult<Response> {

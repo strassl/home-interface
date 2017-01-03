@@ -18,3 +18,11 @@ struct LightStatus {
     mode: LightMode,
     speed: u8,
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+struct SystemInfo {
+    os: String,
+    loadavg: f64,
+    mem_usage: f64,
+    uptime: u64,
+}
