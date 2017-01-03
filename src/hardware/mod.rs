@@ -8,7 +8,7 @@ use std::io::Write;
 use std::io::Read;
 use std::time::Duration;
 use self::serial::SerialPort;
-use self::hardware_error::HardwareError;
+pub use self::hardware_error::HardwareError;
 pub use self::protocol::{
     State, Mode, ProtocolError
 };
@@ -55,7 +55,7 @@ fn write_command(port: &mut serial::SystemPort, command: &Command) -> Result<[u8
     Ok(resp)
 }
 
-pub fn init(port: &str) -> Result<Box<Controller>, io::Error> {
+pub fn init(port: &str) -> Result<Box<Controller+Send+Sync>, io::Error> {
     let mut port = serial::open(port)?;
 
     port.reconfigure(&|settings| {

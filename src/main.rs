@@ -6,11 +6,9 @@ mod interface;
 mod hardware;
 mod util;
 
+use std::sync::{Arc, Mutex};
 use util::simple_logger;
 use log::{LogLevelFilter};
-
-use hardware::Controller;
-use hardware::{State, Mode};
 
 use interface::create_application;
 
@@ -19,7 +17,8 @@ fn main() {
 
     info!("Starting");
 
-    let mut controller: Box<Controller> = hardware::init("/dev/ttyACM1").unwrap();
+    let controller = hardware::init("/dev/ttyACM0").unwrap();
+    /*
     let mut config = State {
         r: 255,
         g: 255,
@@ -43,11 +42,12 @@ fn main() {
 
     config.b = 0;
     controller.set(&config).unwrap();
-    /*
-    let app = create_application();
+    */
+
+    let locked_controller = Arc::new(Mutex::new(controller));
+    let app = create_application(locked_controller);
 
     info!("Rustless server started!");
     info!("On 8000");
     iron::Iron::new(app).http("0.0.0.0:8000").unwrap();
-    */
 }

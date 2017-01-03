@@ -9,10 +9,9 @@ serde_codegen = "0.8"
 
 [dependencies]
 log = "0.3.6"
-rustless = "0.10.0"
 hyper = "0.9.14"
 iron = "0.4.0"
-valico = "1"
+router = "0.4.0"
 palette = "0.2"
 serde = "0.8"
 serde_json = "0.8"
