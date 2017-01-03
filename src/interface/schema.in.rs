@@ -25,4 +25,5 @@ struct SystemInfo {
     loadavg: f64,
     mem_usage: f64,
     uptime: u64,
+    temperature: f64,
 }

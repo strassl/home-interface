@@ -33,6 +33,16 @@ pub fn get_mem_usage() -> Result<f64, io::Error> {
     mem_info().map_err(|_| io::Error::new(io::ErrorKind::Other, "Could not get mem info")).map(|mi| (mi.avail as f64) / (mi.total as f64))
 }
 
+pub fn get_temperature() -> Result<f64, io::Error> {
+    let mut f = File::open("/sys/class/thermal/thermal_zone0/temp")?;
+    let mut temp_str = String::new();
+    f.read_to_string(&mut temp_str)?;
+    let trimmed_temp_str = temp_str.trim();
+    let temp: u64 = trimmed_temp_str.parse().map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+
+    Ok((temp as f64) / 1000.0)
+}
+
 #[cfg(test)]
 mod test {
     use system_information::*;
@@ -65,6 +75,12 @@ mod test {
     fn get_mem_usage_works() {
         let usage = get_mem_usage().unwrap();
         println!("Mem: {}", usage);
+    }
+
+    #[test]
+    fn get_temperature_works() {
+        let temp = get_temperature().unwrap();
+        println!("Temp: {}", temp);
     }
 }
 /*

@@ -53,12 +53,14 @@ fn get_system_info(_: &mut Request) -> Result<Response, InterfaceError> {
     let loadavg = get_loadavg()?;
     let mem_usage = get_mem_usage()?;
     let uptime = get_uptime()?;
+    let temp = get_temperature()?;
 
     let info = SystemInfo {
         os: os,
         loadavg: loadavg,
         mem_usage: mem_usage,
-        uptime: uptime.as_secs()
+        uptime: uptime.as_secs(),
+        temperature: temp,
     };
 
     let resp_json = serde_json::to_string(&info)?;
