@@ -62,9 +62,9 @@ pub struct State {
 pub fn command_to_message(command: &Command) -> [u8; MSG_SIZE] {
     match command {
         &Command::SetRGB { r, g, b } => make_set_rgb(r, g, b),
-        &Command::SetHSV { h, s, v } => unimplemented!(),
-        &Command::SetMode { mode } => unimplemented!(),
-        &Command::SetSpeed { speed } => unimplemented!(),
+        &Command::SetHSV { h, s, v } => make_set_hsv(h, s, v),
+        &Command::SetMode { mode } => make_set_mode(&mode),
+        &Command::SetSpeed { speed } => make_set_speed(speed),
         &Command::GetState => make_get_state()
     }
 }
@@ -95,6 +95,35 @@ fn make_set_rgb(r: u8, g: u8, b: u8) -> [u8; MSG_SIZE] {
     req[1] = r;
     req[2] = g;
     req[3] = b;
+
+    set_checksum(&mut req);
+    req
+}
+
+fn make_set_hsv(h: u8, s: u8, v: u8) -> [u8; MSG_SIZE] {
+    let mut req = [0; MSG_SIZE];
+    req[0] = CMD_SET_HSV;
+    req[1] = h;
+    req[2] = s;
+    req[3] = v;
+
+    set_checksum(&mut req);
+    req
+}
+
+fn make_set_mode(mode: &Mode) -> [u8; MSG_SIZE] {
+    let mut req = [0; MSG_SIZE];
+    req[0] = CMD_SET_MODE;
+    req[1] = mode_to_byte(mode);
+
+    set_checksum(&mut req);
+    req
+}
+
+fn make_set_speed(speed: u8) -> [u8; MSG_SIZE] {
+    let mut req = [0; MSG_SIZE];
+    req[0] = CMD_SET_SPEED;
+    req[1] = speed;
 
     set_checksum(&mut req);
     req

@@ -25,8 +25,12 @@ struct RealController {
 
 impl Controller for RealController {
     fn set(&mut self, config: &State) -> Result<(), HardwareError> {
-        let command = Command::SetRGB { r: config.r, g: config.g, b: config.b };
-        write_command(&mut self.port, &command)?;
+        let cmd_rgb = Command::SetRGB { r: config.r, g: config.g, b: config.b };
+        write_command(&mut self.port, &cmd_rgb)?;
+        let cmd_mode = Command::SetMode { mode: config.mode };
+        write_command(&mut self.port, &cmd_mode)?;
+        let cmd_speed = Command::SetSpeed { speed: config.speed };
+        write_command(&mut self.port, &cmd_speed)?;
         Ok(())
     }
 
@@ -34,14 +38,14 @@ impl Controller for RealController {
         let command = Command::GetState;
         let resp = write_command(&mut self.port, &command)?;
 
-        Ok(protocol::message_to_state(&resp)?)
+        Ok(message_to_state(&resp)?)
     }
 }
 
 fn write_command(port: &mut serial::SystemPort, command: &Command) -> Result<[u8; protocol::MSG_SIZE], HardwareError> {
     let req = command_to_message(command);
     info!("Writing {:?}", req);
-    port.write(&req);
+    port.write(&req)?;
 
     debug!("Reading");
     let mut resp = [0; protocol::MSG_SIZE];
