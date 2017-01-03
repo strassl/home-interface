@@ -1,23 +1,22 @@
 extern crate serial;
 
 mod protocol;
+mod hardware_error;
 
 use std::io;
 use std::io::Write;
 use std::io::Read;
 use std::time::Duration;
 use self::serial::SerialPort;
-
-#[derive(PartialEq, Eq, Clone, Copy)]
-pub struct Configuration {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8
-}
+use self::hardware_error::HardwareError;
+pub use self::protocol::{
+    State, Mode, ProtocolError
+};
+use self::protocol::{Command, command_to_message, message_to_state};
 
 pub trait Controller {
-    fn set(&mut self, config: &Configuration) -> Result<(), io::Error>;
-    fn get(&mut self) -> Result<Configuration, io::Error>;
+    fn set(&mut self, config: &State) -> Result<(), HardwareError>;
+    fn get(&mut self) -> Result<State, HardwareError>;
 }
 
 struct RealController {
@@ -25,32 +24,31 @@ struct RealController {
 }
 
 impl Controller for RealController {
-    fn set(&mut self, config: &Configuration) -> Result<(), io::Error> {
-        let req = protocol::set_rgb(config.r, config.g, config.b);
-        info!("Writing {:?}", req);
-        self.port.write(&req)?;
-
-        debug!("Reading");
-        let mut resp = [0; protocol::MSG_SIZE];
-        self.port.read(&mut resp)?;
-        debug!("Read {:?}", resp);
-
+    fn set(&mut self, config: &State) -> Result<(), HardwareError> {
+        let command = Command::SetRGB { r: config.r, g: config.g, b: config.b };
+        write_command(&mut self.port, &command)?;
         Ok(())
     }
 
-    fn get(&mut self) -> Result<Configuration, io::Error> {
-        let req = protocol::get_state();
-        self.port.write(&req)?;
+    fn get(&mut self) -> Result<State, HardwareError> {
+        let command = Command::GetState;
+        let resp = write_command(&mut self.port, &command)?;
 
-        let mut resp = [0; protocol::MSG_SIZE];
-        self.port.read(&mut resp)?;
-
-        Ok(Configuration {
-            r: resp[1],
-            g: resp[2],
-            b: resp[3],
-        })
+        Ok(protocol::message_to_state(&resp)?)
     }
+}
+
+fn write_command(port: &mut serial::SystemPort, command: &Command) -> Result<[u8; protocol::MSG_SIZE], HardwareError> {
+    let req = command_to_message(command);
+    info!("Writing {:?}", req);
+    port.write(&req);
+
+    debug!("Reading");
+    let mut resp = [0; protocol::MSG_SIZE];
+    port.read_exact(&mut resp)?;
+    debug!("Read {:?}", resp);
+
+    Ok(resp)
 }
 
 pub fn init(port: &str) -> Result<Box<Controller>, io::Error> {
