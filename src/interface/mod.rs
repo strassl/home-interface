@@ -2,6 +2,7 @@ extern crate hyper;
 extern crate iron;
 extern crate router;
 extern crate serde_json;
+extern crate unicase;
 
 mod interface_error;
 mod cors_middleware;
