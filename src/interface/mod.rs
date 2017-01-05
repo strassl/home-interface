@@ -4,6 +4,7 @@ extern crate router;
 extern crate serde_json;
 
 mod interface_error;
+mod cors_middleware;
 
 include!(concat!(env!("OUT_DIR"), "/schema.rs"));
 
@@ -16,6 +17,7 @@ use self::interface_error::InterfaceError;
 use self::iron::prelude::*;
 use self::iron::status;
 use self::router::Router;
+use self::cors_middleware::CorsMiddleware;
 
 impl From<InterfaceError> for iron::IronError {
     fn from(err: InterfaceError) -> iron::IronError {
@@ -28,7 +30,7 @@ impl From<InterfaceError> for iron::IronError {
     }
 }
 
-pub fn create_application(controller: Arc<Mutex<Box<Controller + Send + Sync>>>) -> Router {
+pub fn create_application(controller: Arc<Mutex<Box<Controller + Send + Sync>>>) -> Chain {
     let mut router = Router::new();
 
     {
@@ -41,7 +43,9 @@ pub fn create_application(controller: Arc<Mutex<Box<Controller + Send + Sync>>>)
     }
     router.get("/api/system/info", |r: &mut Request| handle_get_system_info(r), "system info");
 
-    router
+    let mut chain = Chain::new(router);
+    chain.link_after(CorsMiddleware {});
+    chain
 }
 
 fn handle_get_system_info(request: &mut Request) -> IronResult<Response> {
