@@ -133,10 +133,7 @@ fn mode_to_hardware(mode: &LightMode) -> lights::Mode {
         &LightMode::Static => lights::Mode::Static,
         &LightMode::Blink => lights::Mode::Blink,
         &LightMode::Fade => lights::Mode::Fade,
-        &LightMode::Jump3 => lights::Mode::Jump3,
-        &LightMode::Jump7 => lights::Mode::Jump7,
         &LightMode::Knock => lights::Mode::Knock,
-        &LightMode::Tripwire => lights::Mode::Tripwire,
     }
 }
 
@@ -145,9 +142,6 @@ fn mode_to_interface(mode: &lights::Mode) -> LightMode {
         &lights::Mode::Static => LightMode::Static,
         &lights::Mode::Blink => LightMode::Blink,
         &lights::Mode::Fade => LightMode::Fade,
-        &lights::Mode::Jump3 => LightMode::Jump3,
-        &lights::Mode::Jump7 => LightMode::Jump7,
         &lights::Mode::Knock => LightMode::Knock,
-        &lights::Mode::Tripwire => LightMode::Tripwire,
     }
 }

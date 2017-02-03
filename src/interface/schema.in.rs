@@ -3,10 +3,7 @@ enum LightMode {
     Static,
     Blink,
     Fade,
-    Jump3,
-    Jump7,
-    Knock,
-    Tripwire
+    Knock
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]

@@ -12,20 +12,14 @@ const CMD_GET_STATE: u8 = 0x0a;
 const MODE_STATIC: u8 = 0x00;
 const MODE_BLINK: u8 = 0x01;
 const MODE_FADE: u8 = 0x02;
-const MODE_JUMP3: u8 = 0x03;
-const MODE_JUMP7: u8 = 0x04;
 const MODE_KNOCK: u8 = 0x05;
-const MODE_TRIPWIRE: u8 = 0x06;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Mode {
     Static,
     Blink,
     Fade,
-    Jump3,
-    Jump7,
-    Knock,
-    Tripwire
+    Knock
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -134,10 +128,7 @@ fn byte_to_mode(b: u8) -> Option<Mode> {
         MODE_STATIC => Some(Mode::Static),
         MODE_BLINK => Some(Mode::Blink),
         MODE_FADE => Some(Mode::Fade),
-        MODE_JUMP3 => Some(Mode::Jump3),
-        MODE_JUMP7 => Some(Mode::Jump7),
         MODE_KNOCK => Some(Mode::Knock),
-        MODE_TRIPWIRE => Some(Mode::Tripwire),
         _ => None
     }
 }
@@ -147,10 +138,7 @@ fn mode_to_byte(mode: &Mode) -> u8 {
         &Mode::Static => MODE_STATIC,
         &Mode::Blink => MODE_BLINK,
         &Mode::Fade => MODE_FADE,
-        &Mode::Jump3 => MODE_JUMP3,
-        &Mode::Jump7 => MODE_JUMP7,
         &Mode::Knock => MODE_KNOCK,
-        &Mode::Tripwire => MODE_TRIPWIRE
     }
 }
 
